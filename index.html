@@ -1,0 +1,633 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        :root {
+            --blue: #007AFF;
+            --orange: #FF9500;
+            --purple: #8E44AD;
+            --gray: #8E8E93;
+            --bg: #f2f2f7;
+            --card: rgba(255,255,255,0.92);
+            --text: #1d1d1f;
+            --border: rgba(0,0,0,0.07);
+            --row-h: 42px;
+            --row-gap: 5px;
+            --col-gap: 28px;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* HEADER */
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 16px 20px 12px;
+            flex-shrink: 0;
+        }
+        .header img { height: 52px; mix-blend-mode: multiply; }
+
+        /* MAIN LAYOUT */
+        .layout {
+            display: flex;
+            gap: var(--col-gap);
+            padding: 0 20px;
+            flex-shrink: 0;
+        }
+
+        /* LEFT PANEL */
+        .left-panel {
+            width: 220px;
+            flex-shrink: 0;
+            display: flex;
+            flex-direction: column;
+            gap: var(--row-gap);
+        }
+
+        .field-group,
+        .sum-check-row {
+            height: var(--row-h);
+            background: var(--card);
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            padding: 4px 12px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .field-group label {
+            display: block;
+            font-size: 9px;
+            color: var(--gray);
+            text-transform: uppercase;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            margin-bottom: 1px;
+            line-height: 1;
+        }
+        .field-group input {
+            width: 100%;
+            height: 20px;
+            border: none;
+            background: transparent;
+            font-size: 13px;
+            color: var(--text);
+            outline: none;
+            font-weight: 500;
+            line-height: 1;
+        }
+        .field-row { display: flex; gap: var(--row-gap); }
+        .field-row .field-group { flex: 1; }
+
+        input[type="date"]::-webkit-calendar-picker-indicator {
+            font-size: 14px;
+            cursor: pointer;
+            filter: invert(33%) sepia(94%) saturate(2453%) hue-rotate(206deg) brightness(102%) contrast(107%);
+        }
+        input[type="number"]::-webkit-inner-spin-button { opacity: 1; height: 20px; }
+
+        /* SUM CHECKBOX */
+        .sum-check-row {
+            flex-direction: row;
+            align-items: center;
+            gap: 9px;
+            cursor: pointer;
+            user-select: none;
+            padding: 0 12px;
+            transition: border-color 0.15s, background 0.15s;
+        }
+        .sum-check-row.checked {
+            border-color: var(--blue);
+            background: rgba(0,122,255,0.05);
+        }
+        .sum-check-row input[type="checkbox"] {
+            width: 15px; height: 15px;
+            accent-color: var(--blue);
+            cursor: pointer; flex-shrink: 0;
+        }
+        .sum-check-row span {
+            font-size: 11px;
+            color: var(--text);
+            font-weight: 500;
+            line-height: 1.25;
+        }
+
+        /* WARNING */
+        .warning-box {
+            background: var(--orange);
+            color: #fff;
+            border-radius: 10px;
+            padding: 0 12px;
+            height: var(--row-h);
+            font-size: 10px;
+            font-weight: 700;
+            text-align: center;
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
+        .warning-box.visible { display: flex; }
+
+        /* RIGHT PANEL */
+        .right-panel {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: var(--row-gap);
+            min-height: 0;
+        }
+
+        .room-row {
+            background: var(--card);
+            border-radius: 12px;
+            border: 1.5px solid var(--border);
+            display: grid;
+            grid-template-columns: 18px 1fr 96px 100px;
+            gap: 0 12px;
+            align-items: center;
+            padding: 0 14px;
+            cursor: pointer;
+            transition: border-color 0.15s, background 0.15s;
+            user-select: none;
+            height: var(--row-h);
+            flex-shrink: 0;
+        }
+        .room-row:hover { background: rgba(255,255,255,1); }
+        .room-row.checked {
+            border-color: var(--blue);
+            background: rgba(0,122,255,0.05);
+        }
+        .room-row input[type="checkbox"] {
+            width: 15px; height: 15px;
+            accent-color: var(--blue);
+            cursor: pointer; flex-shrink: 0;
+            pointer-events: none;
+        }
+        .room-name { font-size: 13px; font-weight: 600; }
+        .price-base {
+            font-size: 13px; font-weight: 700;
+            text-align: right; color: var(--text);
+        }
+        .price-disc {
+            font-size: 13px; font-weight: 700;
+            color: var(--orange); text-align: right;
+        }
+
+        /* PREVIEW BLOCK */
+        .preview-wrap {
+            padding: 14px 20px 0;
+            flex-shrink: 0;
+        }
+        .preview {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 12px 16px;
+            height: 122px;
+            overflow-y: auto;
+            font-size: 11.5px;
+            line-height: 1.55;
+            color: var(--text);
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+        .preview::-webkit-scrollbar { width: 4px; }
+        .preview::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.15); border-radius: 2px; }
+        .preview-empty {
+            color: var(--gray);
+            font-style: italic;
+            font-size: 11.5px;
+            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            margin: 0;
+        }
+        .preview .line-disc { color: var(--orange); font-weight: 600; }
+        .preview .line-total { font-weight: 700; }
+
+        /* BUTTONS — three columns now */
+        .buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 8px;
+            padding: 12px 20px 18px;
+            flex-shrink: 0;
+        }
+        .btn {
+            height: 44px;
+            border: none;
+            border-radius: 22px;
+            color: #fff;
+            font-size: 10.5px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            cursor: pointer;
+            transition: opacity 0.15s, background 0.2s;
+            padding: 0 8px;
+        }
+        .btn:hover { opacity: 0.88; }
+        .btn:active { opacity: 0.72; }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .btn-blue { background: var(--blue); }
+        .btn-orange { background: var(--orange); }
+        .btn-purple { background: var(--purple); }
+        .btn.flash { background: #34C759 !important; }
+        .btn.error { background: #FF3B30 !important; }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <img src="logo.png" alt="Citrus Hall">
+</div>
+
+<div class="layout">
+    <div class="left-panel">
+        <div class="field-group">
+            <label>Дата события</label>
+            <input type="date" id="eventDate" onchange="calculate()">
+        </div>
+        <div class="field-group">
+            <label>День недели</label>
+            <input type="text" id="dayName" readonly style="color:#555;">
+        </div>
+        <div class="field-row">
+            <div class="field-group">
+                <label>Часы</label>
+                <input type="number" id="hours" value="5" min="1" oninput="calculate()">
+            </div>
+            <div class="field-group">
+                <label>Скидка %</label>
+                <input type="number" id="discount" value="10" oninput="calculate()">
+            </div>
+        </div>
+
+        <label class="sum-check-row" id="sumCheckRow">
+            <input type="checkbox" id="showTotal" onchange="onTotalToggle()">
+            <span>Вывести сумму за несколько залов</span>
+        </label>
+
+        <div class="warning-box" id="warning"></div>
+    </div>
+
+    <div class="right-panel" id="roomsList"></div>
+</div>
+
+<div class="preview-wrap">
+    <div class="preview" id="preview"></div>
+</div>
+
+<div class="buttons">
+    <button class="btn btn-blue"   id="btnBase" onclick="copyOutput(false)">Расчет</button>
+    <button class="btn btn-orange" id="btnDisc" onclick="copyOutput(true)">Со скидкой</button>
+    <button class="btn btn-purple" id="btnKp"   onclick="copyKpLink()">Ссылка КП</button>
+</div>
+
+<script>
+// ============================================================
+// КОНФИГ — менять при изменении URL Worker'а или страницы КП
+// ============================================================
+const WORKER_URL = 'https://citrus-kp.<ТВОЙ-ЛОГИН>.workers.dev';
+const KP_PAGE_URL = 'https://citrus-hall.ru/kp'; // финальный URL страницы на Тильде
+// ============================================================
+
+const ROOMS = ["Грейпфрут","Бергамот","Помело","Шале","Свити","Мандарин","Лайм","Библиотека"];
+const PRICES = {
+    "Грейпфрут": [3700,3000,3700,3700,3700,4000,5500],
+    "Бергамот":  [3700,3000,3200,3200,3200,3800,5000],
+    "Помело":    [2700,2300,2500,2500,2500,2800,3500],
+    "Шале":      [2700,2300,2500,2500,2500,2800,3500],
+    "Свити":     [2800,2000,2200,2200,2200,2700,3400],
+    "Мандарин":  [2300,1900,1900,1900,1900,2300,2800],
+    "Лайм":      [2000,1000,1000,1000,1000,1700,2000],
+    "Библиотека":[2000,1000,1000,1000,1000,1700,2000]
+};
+const CLEAN = { "Лайм": 1000, "Библиотека": 1000 };
+const DAYS = ["Воскресенье","Понедельник","Вторник","Среда","Четверг","Пятница","Суббота"];
+
+function fmt(n) { return n.toString().replace(/\B(?=(\d{3})+(?!\d))/g, "."); }
+
+function buildRows() {
+    const list = document.getElementById('roomsList');
+    list.innerHTML = '';
+    ROOMS.forEach(room => {
+        const row = document.createElement('div');
+        row.className = 'room-row';
+        row.id = 'row-' + room;
+        row.onclick = () => toggleRoom(room);
+        row.innerHTML = `
+            <input type="checkbox" id="chk-${room}">
+            <span class="room-name">${room}</span>
+            <span class="price-base" id="base-${room}">—</span>
+            <span class="price-disc" id="disc-${room}">—</span>
+        `;
+        list.appendChild(row);
+    });
+}
+
+function toggleRoom(room) {
+    const chk = document.getElementById('chk-' + room);
+    chk.checked = !chk.checked;
+    document.getElementById('row-' + room).classList.toggle('checked', chk.checked);
+    renderPreview();
+}
+
+function onTotalToggle() {
+    const chk = document.getElementById('showTotal');
+    document.getElementById('sumCheckRow').classList.toggle('checked', chk.checked);
+    renderPreview();
+}
+
+function getState() {
+    const dVal = document.getElementById('eventDate').value;
+    const h = Number(document.getElementById('hours').value) || 0;
+    const dp = Number(document.getElementById('discount').value) || 0;
+    const dIdx = dVal ? new Date(dVal).getDay() : 0;
+    const showTotal = document.getElementById('showTotal').checked;
+    const selected = ROOMS.filter(r => {
+        const chk = document.getElementById('chk-' + r);
+        return chk && chk.checked;
+    });
+    return { dVal, h, dp, dIdx, showTotal, selected };
+}
+
+function buildSegments(withDiscount) {
+    const { h, dp, dIdx, showTotal, selected } = getState();
+    if (!selected.length) return [];
+    const useTotal = showTotal && selected.length > 1;
+    const out = [];
+
+    if (useTotal) {
+        selected.forEach((room, i) => {
+            const rate = PRICES[room][dIdx];
+            const cl = CLEAN[room] || 2000;
+            const base = rate * h + cl;
+            out.push({ text: `Зал ${room}: ${fmt(rate)}р * ${h}ч + ${fmt(cl)} (уборка) = ${fmt(base)} руб` });
+        });
+
+        const sumBase = selected.reduce((s, room) => {
+            const rate = PRICES[room][dIdx];
+            const cl = CLEAN[room] || 2000;
+            return s + rate * h + cl;
+        }, 0);
+
+        out.push({ text: '', spacer: true });
+        out.push({ text: `ИТОГО: ${fmt(sumBase)} руб`, isTotal: true });
+
+        if (withDiscount) {
+            const sumDisc = Math.round(sumBase * (1 - dp / 100));
+            out.push({ text: '', spacer: true });
+            out.push({ text: `ПРИ ОПЛАТЕ СЕГОДНЯ СО СКИДКОЙ ${dp}% ИТОГО ${fmt(sumDisc)} РУБ`, isDiscount: true });
+        }
+    } else {
+        selected.forEach((room, i) => {
+            if (i > 0) out.push({ text: '', spacer: true });
+            const rate = PRICES[room][dIdx];
+            const cl = CLEAN[room] || 2000;
+            const base = rate * h + cl;
+            out.push({ text: `Зал ${room}: ${fmt(rate)}р * ${h}ч + ${fmt(cl)} (уборка) = ${fmt(base)} руб` });
+            if (withDiscount) {
+                const disc = Math.round(base * (1 - dp / 100));
+                out.push({ text: `ПРИ ОПЛАТЕ СЕГОДНЯ СО СКИДКОЙ ${dp}% ИТОГО ${fmt(disc)} РУБ`, isDiscount: true });
+            }
+        });
+    }
+    return out;
+}
+
+function segmentsToText(segments) {
+    return segments.map(s => s.text).join('\n');
+}
+
+function renderPreview() {
+    const preview = document.getElementById('preview');
+    const segments = buildSegments(true);
+    if (!segments.length) {
+        preview.innerHTML = '<div class="preview-empty">Выберите залы — здесь появится текст для копирования</div>';
+        return;
+    }
+    const html = segments.map(s => {
+        if (s.spacer) return '';
+        const cls = s.isDiscount ? 'line-disc' : (s.isTotal ? 'line-total' : '');
+        const esc = s.text.replace(/&/g,'&amp;').replace(/</g,'&lt;');
+        return cls ? `<span class="${cls}">${esc}</span>` : esc;
+    }).join('\n');
+    preview.innerHTML = html;
+}
+
+function calculate() {
+    const dVal = document.getElementById('eventDate').value;
+    const h = Number(document.getElementById('hours').value) || 0;
+    const dp = Number(document.getElementById('discount').value) || 0;
+
+    if (!dVal) return;
+    const dObj = new Date(dVal);
+    const dIdx = dObj.getDay();
+    document.getElementById('dayName').value = DAYS[dIdx] || '';
+
+    const mh = (dIdx === 0 || dIdx === 5 || dIdx === 6) ? 5 : 3;
+    const w = document.getElementById('warning');
+    if (h > 0 && h < mh) {
+        w.textContent = `⚠️ МИНИМУМ ${mh} ${mh === 5 ? 'ЧАСОВ' : 'ЧАСА'} В ЭТОТ ДЕНЬ`;
+        w.classList.add('visible');
+    } else {
+        w.classList.remove('visible');
+    }
+
+    ROOMS.forEach(room => {
+        const rate = PRICES[room][dIdx];
+        const cl = CLEAN[room] || 2000;
+        const base = rate * h + cl;
+        const disc = Math.round(base * (1 - dp / 100));
+        document.getElementById('base-' + room).textContent = fmt(base) + ' руб';
+        document.getElementById('disc-' + room).textContent = fmt(disc) + ' руб';
+    });
+
+    renderPreview();
+}
+
+function copyOutput(withDiscount) {
+    const segments = buildSegments(withDiscount);
+    const btn = document.getElementById(withDiscount ? 'btnDisc' : 'btnBase');
+    const origLabel = withDiscount ? 'Со скидкой' : 'Расчет';
+
+    if (!segments.length) {
+        btn.textContent = 'Выберите залы →';
+        setTimeout(() => { btn.textContent = origLabel; }, 1500);
+        return;
+    }
+
+    const text = segmentsToText(segments);
+    copyToClipboard(text);
+
+    btn.textContent = '✓ Скопировано';
+    btn.classList.add('flash');
+    setTimeout(() => {
+        btn.textContent = origLabel;
+        btn.classList.remove('flash');
+    }, 1400);
+}
+
+function copyToClipboard(text) {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).catch(() => fallbackCopy(text));
+    } else {
+        fallbackCopy(text);
+    }
+}
+function fallbackCopy(text) {
+    const el = document.createElement('textarea');
+    el.value = text;
+    document.body.appendChild(el);
+    el.select();
+    document.execCommand('copy');
+    document.body.removeChild(el);
+}
+
+// ============================================================
+// Извлечение имени клиента из URL (?name=...) — то, что приходит из amoCRM
+// ============================================================
+function getClientName() {
+    const params = new URLSearchParams(window.location.search);
+    const raw = params.get('name') || '';
+    let name = decodeURIComponent(raw).trim();
+    // Чистим от даты и времени, которые мы парсили в init()
+    name = name.replace(/(\d{1,2}(?:-\d{1,2})?)\.(\d{2})/g, '').trim();
+    name = name.replace(/(?:с\s*)?(\d{1,2})(?::\d{2})?\s*(?:-|до)\s*(\d{1,2})(?::\d{2})?/gi, '').trim();
+    return name || 'Клиент';
+}
+
+// ============================================================
+// НОВАЯ ФУНКЦИЯ — Скопировать ссылку КП
+// ============================================================
+async function copyKpLink() {
+    const btn = document.getElementById('btnKp');
+    const origLabel = 'Ссылка КП';
+
+    const { dVal, dp, selected } = getState();
+    const segments = buildSegments(true);
+
+    if (!selected.length) {
+        btn.textContent = 'Выберите залы →';
+        setTimeout(() => { btn.textContent = origLabel; }, 1500);
+        return;
+    }
+    if (!dVal) {
+        btn.textContent = 'Укажите дату →';
+        setTimeout(() => { btn.textContent = origLabel; }, 1500);
+        return;
+    }
+
+    const clientName = getClientName();
+    const timeFromUrl = extractTimeFromUrl();
+
+    const payload = {
+        meta: {
+            name: clientName,
+            date: dVal,
+            time: timeFromUrl || null,
+            discount: dp,
+        },
+        segments,
+        rooms: selected,
+    };
+
+    btn.textContent = 'Отправка...';
+    btn.disabled = true;
+
+    try {
+        const resp = await fetch(WORKER_URL + '/api/save', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload),
+        });
+
+        if (!resp.ok) {
+            const err = await resp.json().catch(() => ({}));
+            throw new Error(err.error || 'HTTP ' + resp.status);
+        }
+
+        const data = await resp.json();
+        const kpUrl = KP_PAGE_URL + '?id=' + encodeURIComponent(data.slug);
+
+        copyToClipboard(kpUrl);
+
+        btn.textContent = '✓ Скопировано';
+        btn.classList.add('flash');
+        setTimeout(() => {
+            btn.textContent = origLabel;
+            btn.classList.remove('flash');
+            btn.disabled = false;
+        }, 1800);
+    } catch (e) {
+        console.error('Ошибка генерации КП:', e);
+        btn.textContent = '✗ Ошибка';
+        btn.classList.add('error');
+        setTimeout(() => {
+            btn.textContent = origLabel;
+            btn.classList.remove('error');
+            btn.disabled = false;
+        }, 2200);
+    }
+}
+
+function extractTimeFromUrl() {
+    const params = new URLSearchParams(window.location.search);
+    const raw = decodeURIComponent(params.get('name') || '');
+    const m = raw.match(/(?:с\s*)?(\d{1,2}(?::\d{2})?)\s*(?:-|до)\s*(\d{1,2}(?::\d{2})?)/i);
+    if (m) return `${m[1]}-${m[2]}`;
+    return null;
+}
+
+function init() {
+    buildRows();
+
+    const params = new URLSearchParams(window.location.search);
+    const rawName = params.get('name') || '';
+    let name = decodeURIComponent(rawName);
+
+    let foundDate = null;
+    let foundHours = 5;
+
+    const dateRegex = /(\d{1,2}(?:-\d{1,2})?)\.(\d{2})/;
+    const dateMatch = name.match(dateRegex);
+    if (dateMatch) {
+        let dayPart = dateMatch[1].split('-')[0];
+        let monthPart = dateMatch[2];
+        let year = new Date().getFullYear();
+        foundDate = `${year}-${monthPart.padStart(2,'0')}-${dayPart.padStart(2,'0')}`;
+        name = name.replace(dateRegex, 'DATE_STUB');
+    }
+
+    const timeMatch = name.match(/(?:с\s*)?(\d{1,2})(?::\d{2})?\s*(?:-|до)\s*(\d{1,2})(?::\d{2})?/i);
+    if (timeMatch) {
+        let start = parseInt(timeMatch[1], 10);
+        let end = parseInt(timeMatch[2], 10);
+        if (end <= start && end < 12) end += 24;
+        foundHours = end - start;
+    }
+
+    document.getElementById('eventDate').value = foundDate || new Date().toISOString().split('T')[0];
+    document.getElementById('hours').value = foundHours;
+    calculate();
+}
+
+window.onload = init;
+</script>
+</body>
+</html>
