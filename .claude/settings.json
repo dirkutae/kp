@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "flowDesk": {
+      "url": "https://universal.flow-desk.ru/mcp",
+      "apiKey": "fdmcp_v1_3cj4fKeQRW6rbdWWZ3BdsY3fTd7auZCyAiQJ8JqS3Hg"
+    }
+  },
+  "environment": {
+    "FLOW_DESK_MCP_URL": "https://universal.flow-desk.ru/mcp",
+    "FLOW_DESK_MCP_KEY": "fdmcp_v1_3cj4fKeQRW6rbdWWZ3BdsY3fTd7auZCyAiQJ8JqS3Hg"
+  }
+}
